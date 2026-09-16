@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="fr"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
@@ -179,7 +178,7 @@ textarea:focus{outline:none;border-color:#1A5276}
 <body>
 
 <!-- AUTH -->
-<div id="auth-screen" class="hidden">
+<div id="auth-screen">
 <div class="auth-wrap"><div class="auth-box">
   <div class="auth-logo">🏃</div>
   <div class="auth-title">Plateforme QRR — APS</div>
@@ -231,7 +230,7 @@ textarea:focus{outline:none;border-color:#1A5276}
 </div>
 
 <!-- APP -->
-<div id="app-screen" class="">
+<div id="app-screen">
 <div class="wrap">
   <div class="topbar">
     <div class="topbar-logo">🏃</div>
@@ -2503,68 +2502,11 @@ function showMsg(id,txt,cls){const el=document.getElementById(id);el.textContent
 function setLoad(id,on,txt){const b=document.getElementById(id);b.disabled=on;b.innerHTML=on?'<div class="sp"></div> Patientez…':txt;}
 function emailOk(e){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);}
 function ini(n){const p=n.trim().split(/\s+/);return p.length>=2?(p[0][0]+p[1][0]).toUpperCase():n.substring(0,2).toUpperCase();}
-function backToAuth(){document.getElementById("pend-screen").classList.add("hidden");document.getElementById("auth-screen").classList.remove("hidden");}
 
-// ── REGISTER ──
-async function doRegister(){
-  const name=document.getElementById("r-name").value.trim();
-  const email=document.getElementById("r-email").value.trim().toLowerCase();
-  const group=document.getElementById("r-group").value;
-  const pass=document.getElementById("r-pass").value;
-  const pass2=document.getElementById("r-pass2").value;
-  if(!name||!email||!group||!pass){showMsg("r-msg","Tous les champs sont obligatoires.");return;}
-  if(!emailOk(email)){showMsg("r-msg","Email invalide.");return;}
-  if(pass.length<8){showMsg("r-msg","Mot de passe trop court (8 caractères min.).");return;}
-  if(pass!==pass2){showMsg("r-msg","Les mots de passe ne correspondent pas.");return;}
-  setLoad("btn-r",true,"Envoyer ma demande");
-  try{
-    const pwd=await hashPwd(pass);
-    const res=await apiPost({action:"register",name,email,group,pwd});
-    if(res.error){showMsg("r-msg",res.error);return;}
-    showMsg("r-msg","Demande envoyée ! Attendez la validation du formateur.","o");
-    setTimeout(()=>{document.getElementById("auth-screen").classList.add("hidden");document.getElementById("pend-screen").classList.remove("hidden");},2000);
-  }catch(e){showMsg("r-msg","Erreur réseau. Vérifiez votre connexion.");}
-  finally{setLoad("btn-r",false,"Envoyer ma demande");}
-}
 
 // ── LOGIN ──
-async function doLogin(){
-  const now=Date.now();
-  if(loginAttempts>=5 && now-lastAttemptTime<60000){showMsg("l-msg","Trop de tentatives. Attendez 1 minute.","w");return;}
-  const email=document.getElementById("l-email").value.trim().toLowerCase();
-  const pass=document.getElementById("l-pass").value;
-  if(!email||!pass){showMsg("l-msg","Veuillez remplir tous les champs.");return;}
-  if(!emailOk(email)){showMsg("l-msg","Email invalide.");return;}
-  setLoad("btn-l",true,"Se connecter");
-  try{
-    const pwd=await hashPwd(pass);
-    const res=await apiPost({action:"login",email,pwd});
-    if(res.error){
-      loginAttempts++; lastAttemptTime=now;
-      showMsg("l-msg",res.error+(loginAttempts>=3?" ("+( 5-loginAttempts)+" tentatives restantes)":""));
-      return;
-    }
-    if(res.status==="pending"){showMsg("l-msg","Compte en attente de validation.","w");return;}
-    if(res.status==="rejected"){showMsg("l-msg","Accès refusé. Contactez le formateur.");return;}
-    loginAttempts=0;
-    const evRes=await apiGet({action:"getEvals",email});
-    ST.uid=email; ST.name=res.name;
-    ST.evals=evRes||{};
-    document.getElementById("auth-screen").classList.add("hidden");
-    document.getElementById("app-screen").classList.remove("hidden");
-    document.getElementById("u-av").textContent=ini(res.name);
-    document.getElementById("u-lbl").textContent=safe(res.name)+" · "+safe(res.group);
-    renderAll();
-  }catch(e){showMsg("l-msg","Erreur réseau.");}
-  finally{setLoad("btn-l",false,"Se connecter");}
-}
-function doLogout(){
-  Object.values(ST.timers).forEach(t=>clearInterval(t));
-  ST={uid:null,name:null,mod:"ath",volet:"Toutes",disc:"Toutes",answers:{},revealed:{},timers:{},evals:{}};
-  document.getElementById("app-screen").classList.add("hidden");
-  document.getElementById("auth-screen").classList.remove("hidden");
-  document.getElementById("l-email").value="";document.getElementById("l-pass").value="";
-}
+
+
 
 // ── HELPERS ──
 function curMod(){return MODULES.find(m=>m.id===ST.mod)||MODULES[0];}
